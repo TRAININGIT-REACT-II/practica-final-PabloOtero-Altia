@@ -1,28 +1,47 @@
-import { useEffect, useState } from "react";
-import Status from "./components/Status";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import NotFound from "./views/NotFound";
+import CreateUser from "./views/Register";
+import Login from "./views/Login";
+import PrivateRoute from "./components/PrivateRoute";
+import Home from "./views/Home";
+import Layout from "./views/Layout";
+import NotesList from "./views/NotesList";
+import { useState } from "react";
+
+// Contexto de usuario
+import User from "./contexts/user";
 
 // Componente principal de la aplicación.
 const App = () => {
-  const [status, setStatus] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  // Cargamos el estado del servidor
-  useEffect(() => {
-    fetch("/api")
-      .then((res) => res.json())
-      .then((data) => setStatus(data.status === "ok"))
-      .finally(() => setLoading(false));
-  }, []);
+  const [signedIn, setSignedIn] = useState(
+    () => localStorage.getItem('token') !== null
+  );
 
   // Mostramos la aplicación
   return (
-    <main>
-      <h1>Curso de React de TrainingIT</h1>
-      <p>
-        Estado del servidor:
-        {loading ? " Cargando..." : <Status status={status} />}
-      </p>
-    </main>
+    <User.Provider value={{ signedIn, updateUser: setSignedIn }}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route path="" element={<Home />} exact>
+            </Route>
+            <Route path="login" element={<Login />}>
+            </Route>
+            <Route path="register" element={
+              <CreateUser />
+            }>
+            </Route>
+            <Route path="notes" element={
+              <PrivateRoute>
+                <NotesList />
+              </PrivateRoute>
+            }>
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes >
+      </BrowserRouter>
+    </User.Provider>
   );
 };
 
