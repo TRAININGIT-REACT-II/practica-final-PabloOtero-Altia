@@ -1,12 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit'
 
 import user from "./reducers/userReducer";
-import nota from "./reducers/notaReducer";
+import { createStore } from "redux";
 
-
-const store = configureStore(combineReducers({
-    user,
-    nota
-}));
+const store = createStore(user);
 
 export default store;

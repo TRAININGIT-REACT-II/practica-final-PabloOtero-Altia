@@ -1,11 +1,13 @@
 import { useMemo, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { getToken } from "../selectors/user";
 
 // Hook para acceder a la API
 //
 // @param {String} url La URL a la que acceder
 // @param {String} token El token de autenticacion si estuviera presente
 // @param {Object} fetchParams Un objeto para pasar a fetch con configuración extra
-const useApi = (url, token = "", initialParams = {}, performOnMount = true) => {
+const useApi = (url, initialParams = {}, performOnMount = true) => {
   // Estado de carga.
   // Lo asignamos a true ya que empezaremos a cargar
   // directamente.
@@ -18,6 +20,8 @@ const useApi = (url, token = "", initialParams = {}, performOnMount = true) => {
   const [fetchParams, setFetchParams] = useState(initialParams);
   // Permite que la llamada se haga mas tarde
   const [performRequest, setPerformRequest] = useState(performOnMount);
+  //Recogemos el token del estado de redux
+  const token = useSelector((state) => getToken(state));
 
   // Actualiza los parametros
   const updateParams = (newParams) => {

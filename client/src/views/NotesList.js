@@ -1,53 +1,73 @@
-import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import MyList from '../components/MyList';
+import Grid from '@mui/material/Unstable_Grid2';
+import { Button } from '@mui/material';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import { useNavigate, Link } from 'react-router-dom';
+import useApi from '../hooks/useApi';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { getToken } from '../selectors/user';
+
+const columns = ['Título', 'Contenido', 'Autor', 'Fecha creación', 'Fecha modificación'];
+const rowsOrder = ['title', 'content', 'author', 'createdAt', 'updatedAt'];
 
 const NotesList = () => {
-    const rows = [{
-        title: "Nota 1",
-        content: "Acabar curso react",
-        author: 1
-    }];
+    const navigate = useNavigate();
+    const [rows, setRows] = useState([])
+    const notesRequest = useApi(API_URL + "/notes", {}, true);
+    const token = useSelector((state) => getToken(state));
+
+    useEffect(() => {
+        if (notesRequest.data !== null) {
+            setRows(notesRequest.data)
+        }
+    }, [notesRequest.data])
+
+    const handleSeeDetail = (note) => {
+        navigate('/notes/' + note.id)
+        console.log("entre en notas")
+    }
+
+    const handleEdit = (note) => {
+        navigate('/notes/' + note.id + '/edit')
+    }
+
+    const handleDelete = (note, closeModal) => {
+        fetch("/api/notes/" + note.id, {
+            method: "DELETE",
+            headers: {
+                "api-token": token
+            },
+        })
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.error == null) {
+                    closeModal();
+                    setRows(rows.filter( r => r.id !== note.id));
+                }
+            });
+    }
 
     return (
-        <>
-            <Typography mt={2} mb={2} variant='h5' noWrap>
-                Notes
-            </Typography>
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="notas">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Título</TableCell>
-                            <TableCell>Nombre</TableCell>
-                            <TableCell>Contenido</TableCell>
-                            <TableCell></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows.map((row) => (
-                            <TableRow
-                                key={row.title}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell component="th" scope="row">
-                                    {row.title}
-                                </TableCell>
-                                <TableCell>{row.content}</TableCell>
-                                <TableCell>{row.author}</TableCell>
-                                <TableCell></TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </>
+        <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+            <Grid mt={2} mb={2} xs={4} md={2}>
+                <Typography variant='h5' noWrap>
+                    Notes
+                </Typography>
+
+            </Grid>
+            <Grid mt={2} mb={2} xs={8} md={2} xsOffset="auto" justifyItems='right'>
+                <Button variant="contained" startIcon={<NoteAddIcon />} sx={{
+                    whiteSpace: 'nowrap',
+                    minWidth: 'auto'
+                }} component={Link}
+                    to={'/notes/new'} >Crear nota</Button>
+            </Grid>
+            <Grid xs={12}>
+                <MyList rows={rows} rowsOrder={rowsOrder} columns={columns} handleSeeDetail={handleSeeDetail} handleEdit={handleEdit} handleDelete={handleDelete} />
+            </Grid>
+        </Grid >
     );
 }
 export default NotesList;

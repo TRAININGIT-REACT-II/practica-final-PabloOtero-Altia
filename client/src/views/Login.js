@@ -12,32 +12,31 @@ import Button from '@mui/material/Button';
 import { DEFAULT_STATE } from "../constants/user";
 
 import UserForm from "../components/Forms/UserForm";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 // Contexto de usuario
-import User from "../contexts/user";
+// import User from "../contexts/user";
 
 import useApi from "../hooks/useApi";
-
+import { isSignedIn } from '../selectors/user';
+import { signIn } from "../actions/user";
 
 export default function Login() {
     const [user, setUser] = useState(DEFAULT_STATE);
     // Obtenemos el mensaje del a ruta si lo hubiera
-    const { state } = useLocation();
-    // Obtenemos el contexto del usuario
-    const userContext = useContext(User);
-    
+    const { locationState } = useLocation();
+    const dispatch = useDispatch();
+    const signedIn = useSelector((state) => isSignedIn(state));
 
     // Definimos la llamada para login
-    const loginRequest = useApi("/api/login", null, {}, false);
+    const loginRequest = useApi(API_URL + "/login", {}, false);
 
     // Comprobamos si hay que mostrar el mensaje
-    const displayAlert = state && state.msg != null && !userContext.signedIn;
+    const displayAlert = locationState && locationState.msg != null && !signedIn;
 
     useEffect(() => {
         if (loginRequest.data) {
-            userContext.updateUser(true);
-            localStorage.setItem('token', loginRequest.data.token)
+            dispatch(signIn(loginRequest.data));
         }
     })
 
@@ -45,7 +44,6 @@ export default function Login() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        //TODO llamar a api/login y guardar token en localStorage
         loginRequest.updateParams({
             method: "POST",
             body: JSON.stringify({
@@ -57,7 +55,7 @@ export default function Login() {
     };
 
     return (
-        (userContext.signedIn ?
+        (signedIn ?
             (<Navigate to="/" replace={true}></Navigate>)
             :
             <Container component="main" maxWidth="xs">
@@ -77,7 +75,7 @@ export default function Login() {
                         Sign in
                     </Typography>
                     {displayAlert && (
-                        <Alert severity="warning">{state.msg}</Alert>
+                        <Alert severity="warning">{locationState.msg}</Alert>
                     )}
                     <UserForm user={user} setUser={setUser} handleSubmit={handleSubmit} buttonText="Sign in" />
                     <Button

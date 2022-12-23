@@ -6,20 +6,20 @@ import PrivateRoute from "./components/PrivateRoute";
 import Home from "./views/Home";
 import Layout from "./views/Layout";
 import NotesList from "./views/NotesList";
-import { useState } from "react";
 
-// Contexto de usuario
-import User from "./contexts/user";
+
+import store from "./store";
+import { Provider } from "react-redux";
+import NotesAdd from "./views/NotesAdd";
+import NotesDetail from "./views/NotesDetail";
+import NotesEdit from "./views/NotesEdit";
 
 // Componente principal de la aplicación.
 const App = () => {
-  const [signedIn, setSignedIn] = useState(
-    () => localStorage.getItem('token') !== null
-  );
 
   // Mostramos la aplicación
   return (
-    <User.Provider value={{ signedIn, updateUser: setSignedIn }}>
+    <Provider store={store}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
@@ -37,11 +37,29 @@ const App = () => {
               </PrivateRoute>
             }>
             </Route>
+            <Route path="notes/:id" element={
+              <PrivateRoute>
+                <NotesDetail />
+              </PrivateRoute>
+            }>
+            </Route>
+            <Route path="notes/:id/edit" element={
+              <PrivateRoute>
+                <NotesEdit />
+              </PrivateRoute>
+            }>
+            </Route>
+            <Route path="notes/new" element={
+              <PrivateRoute>
+                <NotesAdd />
+              </PrivateRoute>
+            }>
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes >
       </BrowserRouter>
-    </User.Provider>
+    </Provider>
   );
 };
 

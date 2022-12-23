@@ -5,22 +5,24 @@ import Grid2 from '@mui/material/Unstable_Grid2'
 import { Alert } from '@mui/material';
 
 // Contexto de usuario
-import User from "../contexts/user";
+// import User from "../contexts/user";
 
 import useApi from "../hooks/useApi";
-import { useNavigate, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { isSignedIn } from '../selectors/user';
+import { signIn } from "../actions/user";
 
 
 const CreateUser = () => {
     const [user, setUser] = useState(DEFAULT_STATE);
-    // Obtenemos el contexto del usuario
-    const userContext = useContext(User);
-    const registerRequest = useApi("/api/register", null, {}, false);
+    const dispatch = useDispatch();
+    const signedIn = useSelector((state) => isSignedIn(state));
+    const registerRequest = useApi(API_URL + "/register", {}, false);
 
     useEffect(() => {
         if (registerRequest.data) {
-            userContext.updateUser(true);
-            localStorage.setItem('token', registerRequest.data.token)
+            dispatch(signIn(loginRequest.data));
         }
     })
 
@@ -40,7 +42,7 @@ const CreateUser = () => {
         registerRequest.perform();
     };
 
-    return (userContext.signedIn ?
+    return (signedIn ?
         (<Navigate to="/" replace={true}></Navigate>)
         : (<section>
             <h2>Crear usuario</h2>
